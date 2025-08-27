@@ -1,0 +1,21 @@
+# Example configuration for GCP GKE cluster
+# Copy this file to terraform.tfvars and replace with your actual values
+
+# Your GCP project ID
+project_id = "my-gcp-project-id"
+
+# Name for your GKE cluster
+cluster_name = "saturn-cluster-test"
+
+# Network CIDR block for the VPC subnet
+cidr = "10.0.0.0/16"
+
+# GCP region where resources will be created
+region = "us-central1"
+
+# GCP zone for zonal cluster (ignored if regional_cluster = true)
+zone = "us-central1-a"
+
+# Whether to create a regional cluster (true) or zonal cluster (false)
+# Regional clusters have higher availability but cost more
+regional_cluster = false
