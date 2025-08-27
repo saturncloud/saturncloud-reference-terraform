@@ -1,0 +1,33 @@
+# Example configuration for Crusoe Kubernetes cluster
+# Copy this file to terraform.tfvars and replace with your actual values
+
+# Your Crusoe project ID (found in Crusoe console)
+project_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# Name for your Kubernetes cluster
+cluster_name = "saturn-cluster-crusoe"
+
+# Crusoe location for cluster deployment
+location = "us-east1-a"
+
+# Path to your SSH public key for node access
+ssh_key_path = "~/.ssh/id_ed25519.pub"
+
+# Kubernetes version (see `crusoe kubernetes versions list` for available versions)
+kubernetes_version = "1.30.8-cmk.28"
+
+# Cluster Add-ons (includes cluster autoscaler for automatic scaling)
+cluster_addons = [
+  "cluster_autoscaler",
+  "nvidia_gpu_operator", 
+  "nvidia_network_operator",
+  "crusoe_csi"
+]
+
+# System Node Pool
+system_node_type = "c1a.4x"
+
+# Note: All node pools start with the following configuration:
+# - System nodes: 1 instance (fixed)
+# - All other pools: 1 instance (autoscaler will scale based on demand)
+# The cluster autoscaler will automatically scale node pools based on workload requirements
