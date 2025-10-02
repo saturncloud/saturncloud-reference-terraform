@@ -1,4 +1,4 @@
-# Crusoe Managed Kubernetes Cluster with A100 GPUs
+# Crusoe Managed Kubernetes Cluster
 
 This Terraform configuration creates a **Crusoe Managed Kubernetes (CMK)** cluster with A100 GPU support, leveraging Crusoe's fully managed control plane and node pools.
 
