@@ -1,37 +1,30 @@
-# Example configuration for Nebius Kubernetes cluster with Saturn Cloud
+# Example configuration for Nebius Kubernetes cluster
 # Copy this file to terraform.tfvars and replace with your actual values
 
 # Your Nebius project ID
-project_id = "project-xxxxxxxxxxxxxxxxxx"
+project_id = 
 
 # The subnet ID where the cluster will be deployed
-subnet_id = "vpcsubnet-xxxxxxxxxxxxxxxxxx"
+subnet_id = 
 
 # The ID of the viewers group for Nebius Container Registry access
 # Find this in your Nebius console under IAM -> Groups
-viewers_group_id = "group-xxxxxxxxxxxxxxxxxx"
-
-# IAM token for Kubernetes authentication (get via: nebius iam get-access-token)
-# You can also set this via environment variable: export TF_VAR_iam_token=$(nebius iam get-access-token)
-iam_token = "your-iam-token-here"
+viewers_group_id = 
 
 # Name for your Kubernetes cluster
-cluster_name = "saturn-cluster-nebius-us-central1"
+cluster_name = "saturn-cluster"
 
-# Saturn Cloud Configuration
 saturn_cloud_provider          = "nebius"
 saturn_region                  = "us-central1"
 saturn_availability_zone       = "us-central1"
-saturn_domain                  = "nebius-us.saturnenterprise.io"
-saturn_bucket_name             = "saturn-nebius-us-central1"
-saturn_admin_email             = "admin@example.com"
-saturn_customer_name           = "nebius-us"
-saturn_base_url                = "https://app.nebius-us.saturnenterprise.io"
-saturn_ssh_domain              = "ssh.nebius-us.saturnenterprise.io"
+saturn_domain          = 
+saturn_admin_email     = 
+saturn_customer_name   = 
+saturn_base_url        = 
+saturn_ssh_domain      = 
+saturn_bootstrap_token = 
 saturn_image_build_node_role   = "cpu-d3-4vcpu-16gb"
-saturn_use_aws_shim            = "false"
-saturn_examples_templates_urls = "https://example-templates.saturncloud.io/templatesv2/2025.10.01/nebius/llms.yaml"
-saturn_bootstrap_token         = "your-bootstrap-token-here"
+
 
 # Saturn Cloud Instance Configuration
 saturn_instance_config = {

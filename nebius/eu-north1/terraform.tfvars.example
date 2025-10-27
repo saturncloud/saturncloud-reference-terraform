@@ -2,14 +2,14 @@
 # Copy this file to terraform.tfvars and replace with your actual values
 
 # Your Nebius project ID
-project_id = "project-xxxxx"
+project_id = 
 
 # The subnet ID where the cluster will be deployed
-subnet_id = "vpcsubnet-xxxxx"
+subnet_id = 
 
 # The ID of the viewers group for Nebius Container Registry access
 # Find this in your Nebius console under IAM -> Groups
-viewers_group_id = "group-xxxxx"
+viewers_group_id = 
 
 # Name for your Kubernetes cluster
 cluster_name = "saturn-cluster"
@@ -19,23 +19,48 @@ cluster_name = "saturn-cluster"
 # H200 instances always use fabric-7
 h100_infiniband_fabric = "fabric-6"
 
-saturn_cloud_provider          = "nebius"
-saturn_region                  = "eu-north1"
-saturn_availability_zone       = "eu-north1"
-saturn_domain          = "example.saturnenterprise.io"
-saturn_bucket_name     = "saturn-bucket-name"
-saturn_admin_email     = "admin@example.com"
-saturn_customer_name   = "example-customer"
-saturn_base_url        = "https://app.example.saturnenterprise.io"
-saturn_ssh_domain      = "ssh.example.saturnenterprise.io"
-saturn_bootstrap_token = "your-bootstrap-token-here"
-saturn_image_build_node_role   = "gpu-h100-sxm-1gpu-20vcpu-160gb"
+saturn_cloud_provider        = "nebius"
+saturn_region                = "eu-north1"
+saturn_availability_zone     = "eu-north1"
+saturn_domain                = 
+saturn_bucket_name           = 
+saturn_admin_email           = 
+saturn_customer_name         = 
+saturn_base_url              = 
+saturn_ssh_domain            = 
+saturn_bootstrap_token       = 
+saturn_image_build_node_role = "cpu-d3-4vcpu-16gb"
 
-# Saturn Cloud Instance Configuration for eu-north1 (H100 and H200 only)
+# Saturn Cloud Instance Configuration for eu-north1
 saturn_instance_config = {
-  default_cpu = "nebius-gpu-h100-sxm-1gpu-20vcpu-160gb"
-  default_gpu = "nebius-gpu-h200-sxm-1gpu-26vcpu-220gb"
+  default_cpu = "nebius-cpu-d3-4vcpu-16gb"
+  default_gpu = "nebius-gpu-h100-sxm-1gpu-20vcpu-160gb"
   sizes = [
+    # Nebius CPU Instances
+    {
+      name         = "nebius-cpu-d3-4vcpu-16gb"
+      cores        = 4
+      memory       = "16Gi"
+      gpu          = 0
+      display_name = "cpu-d3-4vcpu-16gb"
+      node_role    = "cpu-d3-4vcpu-16gb"
+    },
+    {
+      name         = "nebius-cpu-d3-16vcpu-64gb"
+      cores        = 16
+      memory       = "64Gi"
+      gpu          = 0
+      display_name = "cpu-d3-16vcpu-64gb"
+      node_role    = "cpu-d3-16vcpu-64gb"
+    },
+    {
+      name         = "nebius-cpu-d3-64vcpu-256gb"
+      cores        = 64
+      memory       = "256Gi"
+      gpu          = 0
+      display_name = "cpu-d3-64vcpu-256gb"
+      node_role    = "cpu-d3-64vcpu-256gb"
+    },
     # Nebius H100 GPU Instances (use configurable fabric, default: fabric-6)
     {
       name          = "nebius-gpu-h100-sxm-1gpu-20vcpu-160gb"

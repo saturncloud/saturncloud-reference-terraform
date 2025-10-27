@@ -90,6 +90,106 @@ resource "nebius_mk8s_v1_node_group" "system_nodes" {
 }
 
 ############################
+# CPU Node Groups
+############################
+
+resource "nebius_mk8s_v1_node_group" "cpu_d3_4vcpu_16gb" {
+  parent_id = nebius_mk8s_v1_cluster.saturn_cluster.id
+  name      = "cpu-d3-4vcpu-16gb"
+
+  labels = {
+    "k8s.io/cluster-autoscaler/node-template/label/node.saturncloud.io/role" = "cpu-d3-4vcpu-16gb"
+  }
+
+  template = {
+    service_account_id = nebius_iam_v1_service_account.ncr_nodes.id
+
+    metadata = {
+      labels = {
+        "node.saturncloud.io/role" = "cpu-d3-4vcpu-16gb"
+      }
+    }
+    boot_disk = {
+      size_gibibytes = 93
+      type           = "NETWORK_SSD_NON_REPLICATED"
+    }
+    resources = {
+      platform = "cpu-d3"
+      preset   = "4vcpu-16gb"
+    }
+  }
+
+  autoscaling = {
+    min_node_count = 0
+    max_node_count = 100
+  }
+}
+
+resource "nebius_mk8s_v1_node_group" "cpu_d3_16vcpu_64gb" {
+  parent_id = nebius_mk8s_v1_cluster.saturn_cluster.id
+  name      = "cpu-d3-16vcpu-64gb"
+
+  labels = {
+    "k8s.io/cluster-autoscaler/node-template/label/node.saturncloud.io/role" = "cpu-d3-16vcpu-64gb"
+  }
+
+  template = {
+    service_account_id = nebius_iam_v1_service_account.ncr_nodes.id
+
+    metadata = {
+      labels = {
+        "node.saturncloud.io/role" = "cpu-d3-16vcpu-64gb"
+      }
+    }
+    boot_disk = {
+      size_gibibytes = 93
+      type           = "NETWORK_SSD_NON_REPLICATED"
+    }
+    resources = {
+      platform = "cpu-d3"
+      preset   = "16vcpu-64gb"
+    }
+  }
+
+  autoscaling = {
+    min_node_count = 0
+    max_node_count = 100
+  }
+}
+
+resource "nebius_mk8s_v1_node_group" "cpu_d3_64vcpu_256gb" {
+  parent_id = nebius_mk8s_v1_cluster.saturn_cluster.id
+  name      = "cpu-d3-64vcpu-256gb"
+
+  labels = {
+    "k8s.io/cluster-autoscaler/node-template/label/node.saturncloud.io/role" = "cpu-d3-64vcpu-256gb"
+  }
+
+  template = {
+    service_account_id = nebius_iam_v1_service_account.ncr_nodes.id
+
+    metadata = {
+      labels = {
+        "node.saturncloud.io/role" = "cpu-d3-64vcpu-256gb"
+      }
+    }
+    boot_disk = {
+      size_gibibytes = 93
+      type           = "NETWORK_SSD_NON_REPLICATED"
+    }
+    resources = {
+      platform = "cpu-d3"
+      preset   = "64vcpu-256gb"
+    }
+  }
+
+  autoscaling = {
+    min_node_count = 0
+    max_node_count = 100
+  }
+}
+
+############################
 # H100 GPU Node Groups
 ############################
 
