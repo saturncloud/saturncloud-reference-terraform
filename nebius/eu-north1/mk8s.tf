@@ -193,12 +193,12 @@ resource "nebius_mk8s_v1_node_group" "cpu_d3_64vcpu_256gb" {
 # H100 GPU Node Groups
 ############################
 
-resource "nebius_mk8s_v1_node_group" "gpu_h100_sxm_1gpu_20vcpu_160gb" {
+resource "nebius_mk8s_v1_node_group" "gpu_h100_sxm_1gpu_16vcpu_200gb" {
   parent_id = nebius_mk8s_v1_cluster.saturn_cluster.id
-  name      = "gpu-h100-sxm-1gpu-20vcpu-160gb"
+  name      = "gpu-h100-sxm-1gpu-16vcpu-200gb"
 
   labels = {
-    "k8s.io/cluster-autoscaler/node-template/label/node.saturncloud.io/role" = "gpu-h100-sxm-1gpu-20vcpu-160gb"
+    "k8s.io/cluster-autoscaler/node-template/label/node.saturncloud.io/role" = "gpu-h100-sxm-1gpu-16vcpu-200gb"
   }
 
   template = {
@@ -206,7 +206,7 @@ resource "nebius_mk8s_v1_node_group" "gpu_h100_sxm_1gpu_20vcpu_160gb" {
 
     metadata = {
       labels = {
-        "node.saturncloud.io/role" = "gpu-h100-sxm-1gpu-20vcpu-160gb"
+        "node.saturncloud.io/role" = "gpu-h100-sxm-1gpu-16vcpu-200gb"
         "nvidia.com/gpu"           = "1"
       }
     }
@@ -216,7 +216,7 @@ resource "nebius_mk8s_v1_node_group" "gpu_h100_sxm_1gpu_20vcpu_160gb" {
     }
     resources = {
       platform = "gpu-h100-sxm"
-      preset   = "1gpu-20vcpu-160gb"
+      preset   = "1gpu-16vcpu-200gb"
     }
     gpu_settings = {
       drivers_preset = "cuda12"
@@ -229,12 +229,12 @@ resource "nebius_mk8s_v1_node_group" "gpu_h100_sxm_1gpu_20vcpu_160gb" {
   }
 }
 
-resource "nebius_mk8s_v1_node_group" "gpu_h100_sxm_8gpu_160vcpu_1280gb" {
+resource "nebius_mk8s_v1_node_group" "gpu_h100_sxm_8gpu_128vcpu_1600gb" {
   parent_id = nebius_mk8s_v1_cluster.saturn_cluster.id
-  name      = "gpu-h100-sxm-8gpu-160vcpu-1280gb"
+  name      = "gpu-h100-sxm-8gpu-128vcpu-1600gb"
 
   labels = {
-    "k8s.io/cluster-autoscaler/node-template/label/node.saturncloud.io/role" = "gpu-h100-sxm-8gpu-160vcpu-1280gb"
+    "k8s.io/cluster-autoscaler/node-template/label/node.saturncloud.io/role" = "gpu-h100-sxm-8gpu-128vcpu-1600gb"
   }
 
   template = {
@@ -242,7 +242,7 @@ resource "nebius_mk8s_v1_node_group" "gpu_h100_sxm_8gpu_160vcpu_1280gb" {
 
     metadata = {
       labels = {
-        "node.saturncloud.io/role" = "gpu-h100-sxm-8gpu-160vcpu-1280gb"
+        "node.saturncloud.io/role" = "gpu-h100-sxm-8gpu-128vcpu-1600gb"
         "nvidia.com/gpu"           = "8"
       }
     }
@@ -252,7 +252,7 @@ resource "nebius_mk8s_v1_node_group" "gpu_h100_sxm_8gpu_160vcpu_1280gb" {
     }
     resources = {
       platform = "gpu-h100-sxm"
-      preset   = "8gpu-160vcpu-1280gb"
+      preset   = "8gpu-128vcpu-1600gb"
     }
     gpu_cluster = {
       id = nebius_compute_v1_gpu_cluster.gpu_cluster_h100.id
@@ -272,12 +272,12 @@ resource "nebius_mk8s_v1_node_group" "gpu_h100_sxm_8gpu_160vcpu_1280gb" {
 # H200 GPU Node Groups
 ############################
 
-resource "nebius_mk8s_v1_node_group" "gpu_h200_sxm_1gpu_26vcpu_220gb" {
+resource "nebius_mk8s_v1_node_group" "gpu_h200_sxm_1gpu_16vcpu_200gb" {
   parent_id = nebius_mk8s_v1_cluster.saturn_cluster.id
-  name      = "gpu-h200-sxm-1gpu-26vcpu-220gb"
+  name      = "gpu-h200-sxm-1gpu-16vcpu-200gb"
 
   labels = {
-    "k8s.io/cluster-autoscaler/node-template/label/node.saturncloud.io/role" = "gpu-h200-sxm-1gpu-26vcpu-220gb"
+    "k8s.io/cluster-autoscaler/node-template/label/node.saturncloud.io/role" = "gpu-h200-sxm-1gpu-16vcpu-200gb"
   }
 
   template = {
@@ -285,7 +285,7 @@ resource "nebius_mk8s_v1_node_group" "gpu_h200_sxm_1gpu_26vcpu_220gb" {
 
     metadata = {
       labels = {
-        "node.saturncloud.io/role" = "gpu-h200-sxm-1gpu-26vcpu-220gb"
+        "node.saturncloud.io/role" = "gpu-h200-sxm-1gpu-16vcpu-200gb"
         "nvidia.com/gpu"           = "1"
       }
     }
@@ -295,7 +295,7 @@ resource "nebius_mk8s_v1_node_group" "gpu_h200_sxm_1gpu_26vcpu_220gb" {
     }
     resources = {
       platform = "gpu-h200-sxm"
-      preset   = "1gpu-26vcpu-220gb"
+      preset   = "1gpu-16vcpu-200gb"
     }
     gpu_settings = {
       drivers_preset = "cuda12"
@@ -308,12 +308,12 @@ resource "nebius_mk8s_v1_node_group" "gpu_h200_sxm_1gpu_26vcpu_220gb" {
   }
 }
 
-resource "nebius_mk8s_v1_node_group" "gpu_h200_sxm_8gpu_208vcpu_1760gb" {
+resource "nebius_mk8s_v1_node_group" "gpu_h200_sxm_8gpu_128vcpu_1600gb" {
   parent_id = nebius_mk8s_v1_cluster.saturn_cluster.id
-  name      = "gpu-h200-sxm-8gpu-208vcpu-1760gb"
+  name      = "gpu-h200-sxm-8gpu-128vcpu-1600gb"
 
   labels = {
-    "k8s.io/cluster-autoscaler/node-template/label/node.saturncloud.io/role" = "gpu-h200-sxm-8gpu-208vcpu-1760gb"
+    "k8s.io/cluster-autoscaler/node-template/label/node.saturncloud.io/role" = "gpu-h200-sxm-8gpu-128vcpu-1600gb"
   }
 
   template = {
@@ -321,7 +321,7 @@ resource "nebius_mk8s_v1_node_group" "gpu_h200_sxm_8gpu_208vcpu_1760gb" {
 
     metadata = {
       labels = {
-        "node.saturncloud.io/role" = "gpu-h200-sxm-8gpu-208vcpu-1760gb"
+        "node.saturncloud.io/role" = "gpu-h200-sxm-8gpu-128vcpu-1600gb"
         "nvidia.com/gpu"           = "8"
       }
     }
@@ -331,7 +331,7 @@ resource "nebius_mk8s_v1_node_group" "gpu_h200_sxm_8gpu_208vcpu_1760gb" {
     }
     resources = {
       platform = "gpu-h200-sxm"
-      preset   = "8gpu-208vcpu-1760gb"
+      preset   = "8gpu-128vcpu-1600gb"
     }
     gpu_cluster = {
       id = nebius_compute_v1_gpu_cluster.gpu_cluster_h200.id

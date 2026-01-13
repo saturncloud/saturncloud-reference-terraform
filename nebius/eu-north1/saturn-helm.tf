@@ -15,7 +15,7 @@ resource "helm_release" "saturn_operator" {
   name             = "saturn-helm-operator"
   repository       = "oci://ghcr.io/saturncloud/charts"
   chart            = "saturn-helm-operator-nebius"
-  version          = "2025.10.01-16"
+  version          = "2025.10.01-20"
   namespace        = "saturn-system"
   create_namespace = true
 
@@ -38,6 +38,21 @@ resource "helm_release" "saturn_operator" {
           imageBuildNodeRole = var.saturn_image_build_node_role
           bootstrapToken     = var.saturn_bootstrap_token
           instanceConfig     = local.cleaned_instance_config
+
+          # Saturn components configuration
+          saturnComponents = {
+            clusterSetup = {
+              enabled = true
+              values = {
+                nvidiaDevicePluginEnabled = false
+                gpuNodeLabel              = "nvidia.com/gpu"
+                dockerSecrets = {
+                  enabled          = true
+                  targetNamespaces = "cert-manager,default,ingress,kube-system,logging,main-namespace,monitoring,saturn"
+                }
+              }
+            }
+          }
         },
         # Only include saturnBucketName if it's set
         var.saturn_bucket_name != null ? { saturnBucketName = var.saturn_bucket_name } : {}
