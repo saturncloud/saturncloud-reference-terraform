@@ -92,6 +92,21 @@ resource "nebius_mk8s_v1_node_group" "system_nodes" {
       platform = "cpu-d3"
       preset   = "4vcpu-16gb"
     }
+    filesystems = var.enable_filestore ? [
+      {
+        attach_mode = "READ_WRITE"
+        mount_tag   = local.filestore.mount_tag
+        existing_filesystem = {
+          id = local.shared_filesystem.id
+        }
+      }
+    ] : null
+    cloud_init_user_data = var.enable_filestore ? templatefile("${path.module}/../modules/cloud-init/k8s-cloud-init.tftpl", {
+      enable_filestore     = "true"
+      filestore_mount_path = local.filestore.mount_path
+      ssh_user_name        = "ubuntu"
+      ssh_public_key       = local.ssh_public_key
+    }) : null
   }
 
   autoscaling = {
@@ -137,12 +152,28 @@ resource "nebius_mk8s_v1_node_group" "pool" {
     }
 
     gpu_settings = local.valid_presets["${each.value.platform}/${each.value.preset}"].gpus > 0 ? {
-      drivers_preset = "cuda12"
+      drivers_preset = coalesce(each.value.drivers_preset, local.default_cuda_preset)
     } : null
 
     gpu_cluster = each.value.infiniband_fabric != null ? {
       id = nebius_compute_v1_gpu_cluster.gpu_clusters["${each.value.platform}-${each.value.infiniband_fabric}"].id
     } : null
+
+    filesystems = var.enable_filestore ? [
+      {
+        attach_mode = "READ_WRITE"
+        mount_tag   = local.filestore.mount_tag
+        existing_filesystem = {
+          id = local.shared_filesystem.id
+        }
+      }
+    ] : null
+    cloud_init_user_data = var.enable_filestore ? templatefile("${path.module}/../modules/cloud-init/k8s-cloud-init.tftpl", {
+      enable_filestore     = "true"
+      filestore_mount_path = local.filestore.mount_path
+      ssh_user_name        = "ubuntu"
+      ssh_public_key       = local.ssh_public_key
+    }) : null
   }
 
   autoscaling = {

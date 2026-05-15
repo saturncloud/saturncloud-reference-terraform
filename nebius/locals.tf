@@ -1,4 +1,30 @@
 locals {
+  # Filestore
+  filestore = {
+    mount_tag  = "data"
+    mount_path = var.filestore_mount_path
+  }
+
+  filesystem_csi_chart_name = "csi-mounted-fs-path"
+  filesystem_csi_enabled    = local.shared_filesystem != null
+  filesystem_csi_data_dir   = "${trimsuffix(local.filestore.mount_path, "/")}/csi-mounted-fs-path-data/"
+
+  shared_filesystem = var.enable_filestore ? {
+    id = try(
+      one(nebius_compute_v1_filesystem.shared_filesystem).id,
+      one(data.nebius_compute_v1_filesystem.shared_filesystem).id,
+    )
+    size_gibibytes = floor(provider::units::to_gib(try(
+      one(nebius_compute_v1_filesystem.shared_filesystem).status.size_bytes,
+      one(data.nebius_compute_v1_filesystem.shared_filesystem).status.size_bytes,
+    )))
+    mount_tag = local.filestore.mount_tag
+  } : null
+
+  ssh_public_key = var.ssh_public_key.key != null ? var.ssh_public_key.key : (
+    try(fileexists(var.ssh_public_key.path), false) ? file(var.ssh_public_key.path) : null
+  )
+
   # Derived URLs from saturn_domain
   saturn_base_url   = "https://app.${var.saturn_domain}"
   saturn_ssh_domain = "ssh.${var.saturn_domain}"
@@ -6,6 +32,8 @@ locals {
   # Hardcoded constants
   saturn_cloud_provider        = "nebius"
   saturn_image_build_node_role = "cpu-d3-4vcpu-16gb"
+
+  default_cuda_preset = "cuda13.0"
 
   # Build a node group key for each pool (used as for_each keys and node_role names)
   node_pool_keys = {
@@ -52,10 +80,13 @@ locals {
   cleaned_instance_config = {
     default_cpu = local.instance_config.default_cpu
     default_gpu = local.instance_config.default_gpu
-    sizes = [
-      for size in local.instance_config.sizes : {
+    sizes = concat(
+      [for size in local.instance_config.sizes : {
         for k, v in size : k => v if v != null
-      }
-    ]
+      }],
+      [for size in var.extra_instance_sizes : {
+        for k, v in size : k => v if v != null
+      }]
+    )
   }
 }
