@@ -73,7 +73,7 @@ variable "helm_chart_version" {
 variable "k8s_version" {
   description = "Kubernetes version for the cluster"
   type        = string
-  default     = "1.30"
+  default     = "1.33"
 }
 
 ############################
@@ -163,6 +163,7 @@ variable "node_pools" {
     max_nodes         = optional(number, 10)
     boot_disk_gb      = optional(number, 372)
     infiniband_fabric = optional(string)
+    drivers_preset    = optional(string)
   }))
 
   default = [
