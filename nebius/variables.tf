@@ -65,7 +65,7 @@ variable "manage_helm" {
 }
 
 variable "helm_chart_version" {
-  description = "Version of the saturn-helm-operator chart"
+  description = "Version of the saturn-helm-operator chart. Must be set: chart versions are pre-release style, so Helm cannot resolve a latest version."
   type        = string
   default     = null
 }

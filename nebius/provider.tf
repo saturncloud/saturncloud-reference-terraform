@@ -1,5 +1,4 @@
 provider "nebius" {
-  domain = "api.${var.region}.nebius.cloud:443"
 }
 
 provider "helm" {
