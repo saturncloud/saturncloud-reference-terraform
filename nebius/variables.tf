@@ -119,7 +119,7 @@ variable "filestore_mount_path" {
 variable "filesystem_csi" {
   description = "Configuration for the Nebius Shared Filesystem CSI driver."
   type = object({
-    chart_version = optional(string, "0.1.5")
+    chart_version = optional(string, "0.1.6")
     namespace     = optional(string, "kube-system")
   })
   default = {}

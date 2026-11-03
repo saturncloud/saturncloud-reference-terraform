@@ -34,6 +34,8 @@ NEBIUS_VPC_SUBNET_ID=$(nebius vpc subnet list \
 export NEBIUS_VPC_SUBNET_ID
 
 # Object Storage Bucket
+# Some regions have no quota for the standard storage class, but all of them offer
+# enhanced throughput. The state file is small, so the class makes no real difference to cost.
 export NEBIUS_BUCKET_NAME="tfstate-saturn-cloud-$(echo -n "${NEBIUS_TENANT_ID}-${NEBIUS_PROJECT_ID}" | md5sum | awk '$0=$1')"
 EXISTS=$(nebius storage bucket list \
   --parent-id "${NEBIUS_PROJECT_ID}" \
@@ -43,6 +45,7 @@ if [ -z "${EXISTS}" ]; then
   RESPONSE=$(nebius storage bucket create \
     --name "${NEBIUS_BUCKET_NAME}" \
     --parent-id "${NEBIUS_PROJECT_ID}" \
+    --default-storage-class 'enhanced_throughput' \
     --versioning-policy 'enabled')
   echo "Created bucket: ${NEBIUS_BUCKET_NAME}"
 else
