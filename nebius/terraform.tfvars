@@ -14,11 +14,9 @@ saturn_customer_name   = "my-org"
 saturn_bootstrap_token = ""
 
 # saturn-helm-operator chart version. This must stay set. Our chart versions look like
-# pre-releases (2026.8.1-60), so Helm cannot choose a "latest" version and fails without it.
-# 2026.8.1-60 is the version last installed from scratch on Nebius, on 2026-11-02.
-# It needs one manual step during first install, described at
-# https://saturncloud.io/docs/enterprise/nebius/
-helm_chart_version = "2026.8.1-60"
+# pre-releases (2026.8.1-62), so Helm cannot choose a "latest" version and fails without it.
+# 2026.8.1-62 is the version last installed from scratch on Nebius.
+helm_chart_version = "2026.8.1-62"
 
 ############################
 # Node pools
