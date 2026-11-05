@@ -65,7 +65,7 @@ variable "manage_helm" {
 }
 
 variable "helm_chart_version" {
-  description = "Version of the saturn-helm-operator chart"
+  description = "Version of the saturn-helm-operator chart. Must be set: chart versions are pre-release style, so Helm cannot resolve a latest version."
   type        = string
   default     = null
 }
@@ -119,7 +119,7 @@ variable "filestore_mount_path" {
 variable "filesystem_csi" {
   description = "Configuration for the Nebius Shared Filesystem CSI driver."
   type = object({
-    chart_version = optional(string, "0.1.5")
+    chart_version = optional(string, "0.1.6")
     namespace     = optional(string, "kube-system")
   })
   default = {}

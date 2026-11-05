@@ -1,4 +1,6 @@
 terraform {
+  required_version = ">= 1.8"
+
   required_providers {
     nebius = {
       source  = "terraform-provider.storage.eu-north1.nebius.cloud/nebius/nebius"

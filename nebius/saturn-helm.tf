@@ -62,8 +62,11 @@ resource "helm_release" "saturn_operator" {
 
   values = [yamlencode(local.saturn_helm_values)]
 
+  # Install after the nodes and the shared-filesystem driver exist.
   depends_on = [
-    nebius_mk8s_v1_cluster.saturn_cluster
+    nebius_mk8s_v1_cluster.saturn_cluster,
+    nebius_mk8s_v1_node_group.system_nodes,
+    helm_release.filesystem_csi,
   ]
 }
 

@@ -13,13 +13,18 @@ saturn_admin_email     = "admin@example.com"
 saturn_customer_name   = "my-org"
 saturn_bootstrap_token = ""
 
-# Uncomment to pin a specific chart version (default: latest)
-helm_chart_version = "2026.2.1-97"
+# saturn-helm-operator chart version. This must stay set. Our chart versions look like
+# pre-releases (2026.8.1-62), so Helm cannot choose a "latest" version and fails without it.
+# 2026.8.1-62 is the version last installed from scratch on Nebius.
+helm_chart_version = "2026.8.1-62"
 
 ############################
 # Node pools
 ############################
 # The default includes CPU sizes + H200 1-GPU. Customize as needed.
+# Not every platform exists in every region. The default H200 pool, for example, is not
+# available in uk-south1. To see what your project's region offers:
+#   nebius compute platform list --parent-id "${NEBIUS_PROJECT_ID}"
 # 8-GPU presets require infiniband_fabric (obtain from Nebius support).
 
 # node_pools = [

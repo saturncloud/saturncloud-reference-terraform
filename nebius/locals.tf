@@ -77,9 +77,11 @@ locals {
   }
 
   # Clean instance config by removing null values from each size object
+  # A CPU-only node_pools list has no default GPU. Send "" rather than null: the chart's own
+  # default for this field is null, and Atlas crash-loops at startup if it receives null.
   cleaned_instance_config = {
-    default_cpu = local.instance_config.default_cpu
-    default_gpu = local.instance_config.default_gpu
+    default_cpu = local.instance_config.default_cpu != null ? local.instance_config.default_cpu : ""
+    default_gpu = local.instance_config.default_gpu != null ? local.instance_config.default_gpu : ""
     sizes = concat(
       [for size in local.instance_config.sizes : {
         for k, v in size : k => v if v != null
