@@ -5,6 +5,7 @@ resource "nebius_iam_v1_service_account" "ncr_nodes" {
   description = "Node-group SA for pulling from Nebius Container Registry"
 
   depends_on = [
+    terraform_data.validate_region,
     terraform_data.validate_platforms,
     terraform_data.validate_infiniband,
     terraform_data.validate_no_duplicates,
@@ -40,6 +41,7 @@ resource "nebius_mk8s_v1_cluster" "saturn_cluster" {
   }
 
   depends_on = [
+    terraform_data.validate_region,
     terraform_data.validate_platforms,
     terraform_data.validate_infiniband,
     terraform_data.validate_no_duplicates,
@@ -58,6 +60,7 @@ resource "nebius_compute_v1_gpu_cluster" "gpu_clusters" {
   infiniband_fabric = each.value.infiniband_fabric
 
   depends_on = [
+    terraform_data.validate_region,
     terraform_data.validate_platforms,
     terraform_data.validate_infiniband,
     terraform_data.validate_no_duplicates,
@@ -116,7 +119,7 @@ resource "nebius_mk8s_v1_node_group" "system_nodes" {
 }
 
 ############################
-# Dynamic node groups from var.node_pools
+# Dynamic node groups from the region defaults or var.node_pools
 ############################
 
 resource "nebius_mk8s_v1_node_group" "pool" {

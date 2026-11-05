@@ -38,8 +38,9 @@ variable "cluster_name" {
 }
 
 variable "saturn_domain" {
-  description = "Saturn Cloud domain (base_url and ssh_domain are derived from this)"
+  description = "Saturn Cloud domain. Leave empty to use <saturn_customer_name>.saturnenterprise.io. base_url and ssh_domain are derived from it."
   type        = string
+  default     = ""
 }
 
 variable "saturn_admin_email" {
@@ -155,7 +156,12 @@ variable "extra_instance_sizes" {
 }
 
 variable "node_pools" {
-  description = "List of node pools to create. Each pool becomes a node group and an instance config entry."
+  description = <<-EOT
+    Node pools to create, each of which becomes a node group and an instance size in
+    Saturn Cloud. Leave unset to use the default pools for var.region (see
+    region_gpu_node_pools in locals.tf). Set it to choose your own pools, or to install in
+    a region that has no defaults.
+  EOT
   type = list(object({
     platform          = string
     preset            = string
@@ -165,13 +171,5 @@ variable "node_pools" {
     infiniband_fabric = optional(string)
     drivers_preset    = optional(string)
   }))
-
-  default = [
-    # CPU sizes
-    { platform = "cpu-d3", preset = "4vcpu-16gb" },
-    { platform = "cpu-d3", preset = "16vcpu-64gb" },
-    { platform = "cpu-d3", preset = "64vcpu-256gb" },
-    # GPU - H200 1-GPU
-    { platform = "gpu-h200-sxm", preset = "1gpu-16vcpu-200gb" },
-  ]
+  default = null
 }
