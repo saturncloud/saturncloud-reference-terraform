@@ -49,6 +49,16 @@ if [ -z "${EXISTS}" ]; then
     --versioning-policy 'enabled')
   echo "Created bucket: ${NEBIUS_BUCKET_NAME}"
 else
+  # A bucket left by an earlier attempt may use the standard class, which has no quota in
+  # some regions. Switch new uploads to enhanced throughput; existing objects are unchanged.
+  NEBIUS_BUCKET_ID=$(nebius storage bucket get-by-name \
+    --parent-id "${NEBIUS_PROJECT_ID}" \
+    --name "${NEBIUS_BUCKET_NAME}" \
+    --format json \
+    | jq -r '.metadata.id')
+  RESPONSE=$(nebius storage bucket update \
+    --id "${NEBIUS_BUCKET_ID}" \
+    --default-storage-class 'enhanced_throughput')
   echo "Using existing bucket: ${NEBIUS_BUCKET_NAME}"
 fi
 

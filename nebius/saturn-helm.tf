@@ -5,7 +5,7 @@ locals {
 
     # Core Saturn configuration
     clusterName      = var.cluster_name
-    domain           = var.saturn_domain
+    domain           = local.saturn_domain
     cloudProvider    = local.saturn_cloud_provider
     region           = var.region
     availabilityZone = var.region
