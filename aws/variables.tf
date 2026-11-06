@@ -12,14 +12,8 @@ variable "org_name" {
   type        = string
 }
 
-variable "saturn_bucket_name" {
-  description = "Name of the Saturn bucket created by ./bucket. Leave empty for saturn-<org_name>."
-  type        = string
-  default     = ""
-}
-
 variable "tags" {
-  description = "Tags added to every AWS resource, on top of saturn:org=<org_name> and app=Saturn."
+  description = "Tags for every AWS resource (saturn-aws's config tags). saturn:org=<org_name> is added."
   type        = map(string)
   default     = {}
 }
@@ -126,7 +120,7 @@ variable "authentication_mode" {
 }
 
 variable "eks_secrets_kms_arn" {
-  description = "KMS key for EKS secrets encryption. Leave empty to create one."
+  description = "KMS key for EKS secrets encryption. Leave empty to create one, as saturn-aws does."
   type        = string
   default     = ""
 }
@@ -135,10 +129,18 @@ variable "eks_secrets_kms_arn" {
 # Nodes
 ############################
 
+variable "start_nodes" {
+  description = "false for the first apply: builds the cluster with no nodes, removes the AWS VPC CNI and installs Calico. Then apply again with true to start the system node and install the add-ons and the operator. saturn-aws did the same with two applies."
+  type        = bool
+  default     = false
+}
+
 variable "system_node" {
-  description = "System node group. Defaults match saturn-aws's system_node."
+  description = "System node group (saturn-aws system_asg_config). Defaults match instance_types.py system_node, with enable_monitoring = false as aws_config.py sets it."
   type = object({
     instance_type     = optional(string, "r5.large")
+    cores             = optional(number, 2)
+    memory            = optional(string, "16Gi")
     min_size          = optional(number, 1)
     max_size          = optional(number, 100)
     desired_capacity  = optional(number, 1)
@@ -149,7 +151,7 @@ variable "system_node" {
 }
 
 variable "instance_sizes" {
-  description = "Workspace node sizes. Each gets an on-demand and a spot_ node group and is offered in Atlas. Defaults are saturn-aws's medium and large; add more in the same shape."
+  description = "Workspace node sizes (saturn-aws asg_config, and Atlas's instanceConfig). Each gets an on-demand and a spot_ node group. Defaults are saturn-aws's medium and large from instance_types.py; add more in the same shape."
   type = list(object({
     name                = string
     display_name        = string
@@ -203,7 +205,7 @@ variable "workers_additional_policies" {
 ############################
 
 variable "network_filesystem_enabled" {
-  description = "Create an EFS filesystem for Saturn's shared folders."
+  description = "Create an EFS filesystem for Saturn's shared folders (saturn-aws manage_efs). Not tested with this module."
   type        = bool
   default     = false
 }

@@ -1,30 +1,20 @@
-# TLS terminates on the load balancer with an ACM certificate, as on every
-# saturn-aws install: AWS holds the key and renews the certificate. This
-# replaces saturn-aws's acm stack plus its INSTALL_ACME call and wait loop.
-#
-# ACM proves the domain with a CNAME under <domain>. Saturn owns the
-# saturnenterprise.io zone, so the manager writes that record for us; it
-# checks that the name is under the customer's own domain.
-
-resource "aws_acm_certificate" "default" {
-  domain_name       = "*.${local.saturn_domain}"
-  validation_method = "DNS"
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
+# aws_installation.py tf_acm and wait_acm: post the ACM DNS challenge to the
+# Saturn manager, which owns the saturnenterprise.io zone and writes the
+# record after checking it is under the customer's domain, then wait for
+# ACM to issue the certificate. TLS then terminates on the load balancer
+# with this certificate, as on every saturn-aws install.
 
 locals {
-  acm_challenge = one(aws_acm_certificate.default.domain_validation_options)
+  acm_arn = nonsensitive(module.acm.acm_results["acm_arn"])
 }
 
 resource "terraform_data" "acm_dns_challenge" {
-  triggers_replace = [aws_acm_certificate.default.arn]
+  triggers_replace = [local.acm_arn]
 
   provisioner "local-exec" {
-    # The bootstrap token authenticates this call without being spent; the
-    # operator exchanges it later.
+    # Same payload as aws_config.py acm_registration_payload. The bootstrap
+    # token authenticates the call without being spent; the operator
+    # exchanges it later.
     command = <<-EOT
       set -eu
       body=$(jq -n --arg n "$CHALLENGE_NAME" --arg v "$CHALLENGE_VALUE" --arg t "$CHALLENGE_TYPE" \
@@ -36,15 +26,15 @@ resource "terraform_data" "acm_dns_challenge" {
     environment = {
       MANAGER_URI     = var.saturn_manager_uri
       SATURN_TOKEN    = var.saturn_bootstrap_token
-      CHALLENGE_NAME  = local.acm_challenge.resource_record_name
-      CHALLENGE_VALUE = local.acm_challenge.resource_record_value
-      CHALLENGE_TYPE  = local.acm_challenge.resource_record_type
+      CHALLENGE_NAME  = module.acm.acm_results["dns_challenge_name"]
+      CHALLENGE_VALUE = module.acm.acm_results["dns_challenge_rec"]
+      CHALLENGE_TYPE  = module.acm.acm_results["dns_challenge_type"]
     }
   }
 }
 
 resource "aws_acm_certificate_validation" "default" {
-  certificate_arn = aws_acm_certificate.default.arn
+  certificate_arn = local.acm_arn
 
   timeouts {
     create = "45m"

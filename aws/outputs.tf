@@ -1,55 +1,54 @@
 output "cluster_name" {
   description = "EKS cluster name."
-  value       = aws_eks_cluster.this.name
-}
-
-output "cluster_endpoint" {
-  description = "EKS API endpoint."
-  value       = aws_eks_cluster.this.endpoint
+  value       = local.cluster_name
 }
 
 output "kubeconfig_command" {
   description = "Writes a kubeconfig for the cluster."
-  value       = "aws eks update-kubeconfig --name ${aws_eks_cluster.this.name} --region ${var.region}"
+  value       = "aws eks update-kubeconfig --name ${local.cluster_name} --region ${var.region}"
 }
 
 output "saturn_url" {
   description = "Saturn web address."
-  value       = local.saturn_base_url
+  value       = "https://app.${local.saturn_domain}"
+}
+
+output "acm_certificate_arn" {
+  value = local.acm_arn
 }
 
 output "vpc_id" {
-  value = aws_vpc.this.id
+  value = module.vpc.vpc_id
 }
 
 output "public_subnet_ids" {
-  value = aws_subnet.public[*].id
+  value = module.vpc.vpc_public_subnets
 }
 
 output "private_subnet_ids" {
-  value = aws_subnet.private[*].id
+  value = module.vpc.vpc_private_subnets
 }
 
 output "nat_gateway_ips" {
-  value = aws_eip.nat[*].public_ip
+  value = module.vpc.vpc_nat_gateway_ips
 }
 
 output "worker_security_group_id" {
-  value = aws_security_group.workers.id
+  value = module.cluster.worker_security_group_id
 }
 
 output "oidc_provider_arn" {
-  value = aws_iam_openid_connect_provider.oidc_provider.arn
+  value = module.cluster.oidc_provider_arn
 }
 
 output "atlas_role_arn" {
-  value = aws_iam_role.atlas.arn
+  value = module.cluster.atlas_role_arn
 }
 
 output "ebs_csi_role_arn" {
-  value = aws_iam_role.ebs_csi.arn
+  value = module.cluster.ebs_csi_role_arn
 }
 
 output "saturn_nfs_efs_id" {
-  value = var.network_filesystem_enabled ? aws_efs_file_system.saturn_nfs_efs[0].id : ""
+  value = module.cluster.saturn_nfs_efs_id
 }

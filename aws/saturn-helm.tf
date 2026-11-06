@@ -3,7 +3,6 @@
 # The operator fills in images, the domain and the tokens itself.
 
 locals {
-  saturn_domain   = var.saturn_domain != "" ? var.saturn_domain : "${var.saturn_customer_name}.saturnenterprise.io"
   saturn_base_url = "https://app.${local.saturn_domain}"
   ssh_domain      = "ssh.${local.saturn_domain}"
 
@@ -31,7 +30,7 @@ locals {
     }]
   }
 
-  public_subnet_ids = aws_subnet.public[*].id
+  public_subnet_ids = module.vpc.vpc_public_subnets
 
   saturn_helm_values = {
     createNamespaces = true
@@ -93,7 +92,7 @@ locals {
             targetNamespaces = "cert-manager,default,ingress,kube-node-lease,kube-public,kube-system,logging,main-namespace,monitoring,saturn"
             # docker-secrets-manager reads ECR through the Atlas role (IRSA),
             # one of the three service accounts that role trusts.
-            serviceAccountAnnotations = { "eks.amazonaws.com/role-arn" = aws_iam_role.atlas.arn }
+            serviceAccountAnnotations = { "eks.amazonaws.com/role-arn" = module.cluster.atlas_role_arn }
             ecrPrivateUseIRSA         = true
             ecrPrivateRegion          = var.region
           }
@@ -105,7 +104,7 @@ locals {
         values = {
           clusterName     = local.cluster_name
           aws             = { s3Bucket = local.saturn_bucket_name, region = var.region }
-          atlasIAMRoleArn = aws_iam_role.atlas.arn
+          atlasIAMRoleArn = module.cluster.atlas_role_arn
         }
       }
 
@@ -152,18 +151,18 @@ locals {
             internalLB      = false
             s3Bucket        = local.saturn_bucket_name
             region          = var.region
-            atlasIAMRoleArn = aws_iam_role.atlas.arn
+            atlasIAMRoleArn = module.cluster.atlas_role_arn
           }
           certManager = { enabled = false }
           env = {
             LOCAL_CLUSTER_NAME           = local.cluster_name
-            WORKER_SECURITY_GROUP        = aws_security_group.workers.id
-            WORKER_SUBNET                = aws_subnet.private[0].id
+            WORKER_SECURITY_GROUP        = module.cluster.worker_security_group_id
+            WORKER_SUBNET                = module.vpc.vpc_private_subnets[0]
             INTERNAL_LOADBALANCERS       = "False"
             SATURN_BUCKET_NAME           = local.saturn_bucket_name
             SATURN_IMAGE_METADATA_BUCKET = "saturn-image-metadata"
             NETWORK_FILESYSTEM_ENABLED   = var.network_filesystem_enabled ? "True" : "False"
-            NETWORK_FILESYSTEM_EFS_ID    = var.network_filesystem_enabled ? aws_efs_file_system.saturn_nfs_efs[0].id : ""
+            NETWORK_FILESYSTEM_EFS_ID    = module.cluster.saturn_nfs_efs_id
             OBJECT_STORAGE_ENABLED       = var.object_storage_enabled ? "True" : "False"
             # saturn-aws default. Set here so a chart default can never turn it on.
             ALLOW_DEPLOYMENT_PUBLIC_ACCESS = "False"
@@ -187,7 +186,7 @@ locals {
 }
 
 resource "helm_release" "saturn_operator" {
-  count = var.manage_helm ? 1 : 0
+  count = var.manage_helm && var.start_nodes ? 1 : 0
 
   name             = "saturn-helm-operator"
   repository       = "oci://ghcr.io/saturncloud/charts"
@@ -199,10 +198,10 @@ resource "helm_release" "saturn_operator" {
   values = [yamlencode(local.saturn_helm_values)]
 
   depends_on = [
-    aws_autoscaling_group.workers,
+    module.cluster,
     aws_eks_addon.ebs_csi,
-    helm_release.calico,
-    kubernetes_config_map_v1.aws_auth,
+    terraform_data.calico,
+    terraform_data.adopt_coredns,
   ]
 }
 
@@ -210,10 +209,10 @@ resource "helm_release" "saturn_operator" {
 # made AWS resources Terraform does not track (load balancers from Services,
 # EBS volumes from PVCs), while nodes and the operator are still up.
 resource "terraform_data" "pre_destroy_cleanup" {
-  count = var.manage_helm ? 1 : 0
+  count = var.manage_helm && var.start_nodes ? 1 : 0
 
   input = {
-    cluster_name = aws_eks_cluster.this.name
+    cluster_name = local.cluster_name
     region       = var.region
     script       = "${path.module}/scripts/pre-destroy-cleanup.sh"
   }
