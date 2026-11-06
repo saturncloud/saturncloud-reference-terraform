@@ -114,6 +114,7 @@ locals {
         values = {
           cloudProvider = "aws"
           aws = {
+            acm        = aws_acm_certificate_validation.default.certificate_arn
             internalLB = false
             vpcCIDR    = var.vpc_cidr
             subnets    = local.public_subnet_ids
@@ -121,7 +122,7 @@ locals {
           }
           loadBalancerCIDRs       = []
           loadBalancerIdleTimeout = 300
-          certManager             = { enabled = true }
+          certManager             = { enabled = false }
         }
       }
 
@@ -147,12 +148,13 @@ locals {
         enabled = true
         values = {
           aws = {
+            acm             = aws_acm_certificate_validation.default.certificate_arn
             internalLB      = false
             s3Bucket        = local.saturn_bucket_name
             region          = var.region
             atlasIAMRoleArn = aws_iam_role.atlas.arn
           }
-          certManager = { enabled = true }
+          certManager = { enabled = false }
           env = {
             LOCAL_CLUSTER_NAME           = local.cluster_name
             WORKER_SECURITY_GROUP        = aws_security_group.workers.id
@@ -165,19 +167,21 @@ locals {
             OBJECT_STORAGE_ENABLED       = var.object_storage_enabled ? "True" : "False"
             # saturn-aws default. Set here so a chart default can never turn it on.
             ALLOW_DEPLOYMENT_PUBLIC_ACCESS = "False"
+            # TLS is on the load balancer, so Atlas routes use no Traefik TLS store.
+            LOCAL_CLUSTER_TLS_STORE = "none"
           }
         }
       }
 
-      certManager    = { enabled = true }
-      httpreqWebhook = { enabled = true }
-
-      # Off, as on saturn-aws installs. Listed explicitly because the
-      # 2026.2.1-1xx charts fail to render when these keys are missing.
-      pandora = { enabled = false }
-      phoebe  = { enabled = false }
-      spegel  = { enabled = false }
-      jobset  = { enabled = false }
+      # Off, as on saturn-aws installs (ACM handles TLS). phoebe, spegel and
+      # jobset are listed explicitly because the 2026.2.1-1xx charts fail to
+      # render when those keys are missing.
+      certManager    = { enabled = false }
+      httpreqWebhook = { enabled = false }
+      pandora        = { enabled = false }
+      phoebe         = { enabled = false }
+      spegel         = { enabled = false }
+      jobset         = { enabled = false }
     }
   }
 }
