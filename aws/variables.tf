@@ -227,13 +227,13 @@ variable "object_storage_upload_expiration_days" {
 ############################
 
 variable "manage_helm" {
-  description = "Install Calico and the Saturn operator from Terraform. With false, Terraform stops at an empty cluster and you install both by hand (README.md)."
+  description = "Install Calico, CoreDNS and the Saturn operator from Terraform. With false, Terraform stops at an empty cluster and you install them by hand (README.md)."
   type        = bool
   default     = true
 }
 
-variable "calico_chart_path" {
-  description = "Path to the calico chart taken from the operator image. Leave empty for .charts/calico next to this file, where scripts/fetch-calico-chart.sh puts it."
+variable "charts_path" {
+  description = "Directory holding the calico and coredns charts taken from the operator image. Leave empty for .charts next to this file, where scripts/fetch-charts.sh puts them."
   type        = string
   default     = ""
 }

@@ -54,7 +54,7 @@ locals {
 
     images = {
       # Overridden on every EKS install: the chart default is coredns/coredns:1.6.6.
-      coredns = var.coredns_image != "" ? var.coredns_image : "602401143452.dkr.ecr.${var.region}.amazonaws.com/eks/coredns:v1.11.4-eksbuild.2"
+      coredns = local.coredns_image
     }
 
     saturnComponents = {
@@ -201,7 +201,7 @@ resource "helm_release" "saturn_operator" {
     module.cluster,
     aws_eks_addon.ebs_csi,
     terraform_data.calico,
-    terraform_data.adopt_coredns,
+    terraform_data.coredns,
   ]
 }
 

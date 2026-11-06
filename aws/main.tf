@@ -119,20 +119,18 @@ resource "terraform_data" "remove_aws_cni" {
   }
 }
 
-# Calico, from the operator image, installed by hand as the runbook says:
-# the operator is a pod and cannot start without a CNI. Release name and
-# namespace are the ones the operator uses (calico / kube-system), so the
-# operator's first reconcile upgrades this release and owns it from then on.
+# Calico and CoreDNS, from the operator image, installed by hand before the
+# operator: the operator is a pod, so it cannot start without a CNI, and its
+# first step (exchanging the bootstrap token with the manager) needs cluster
+# DNS. EKS's own CoreDNS cannot run on the tainted system nodes. saturn-aws
+# installed both charts itself before anything else (apps_batch_1).
+# Release names and namespaces are the ones the operator uses (calico and
+# coredns, in kube-system), so the operator's first reconcile upgrades these
+# releases and owns them from then on.
 locals {
-  calico_values = {
-    cloudProvider = "aws"
-    ipv4PoolCidr  = var.calico_ipv4_pool_cidr
-    images = {
-      cni             = "public.ecr.aws/saturncloud/calico/cni:v3.31.3"
-      node            = "public.ecr.aws/saturncloud/calico/node:v3.31.3"
-      kubeControllers = "public.ecr.aws/saturncloud/calico/kube-controllers:v3.31.3"
-      typha           = "public.ecr.aws/saturncloud/calico/typha:v3.31.3"
-    }
+  charts_path = var.charts_path != "" ? var.charts_path : "${path.module}/.charts"
+
+  system_node_scheduling = {
     nodeSelector = { "node.saturncloud.io/role" = "system" }
     tolerations = [{
       key      = "node.saturncloud.io/role"
@@ -141,6 +139,27 @@ locals {
       effect   = "NoSchedule"
     }]
   }
+
+  calico_values = merge(local.system_node_scheduling, {
+    cloudProvider = "aws"
+    ipv4PoolCidr  = var.calico_ipv4_pool_cidr
+    images = {
+      cni             = "public.ecr.aws/saturncloud/calico/cni:v3.31.3"
+      node            = "public.ecr.aws/saturncloud/calico/node:v3.31.3"
+      kubeControllers = "public.ecr.aws/saturncloud/calico/kube-controllers:v3.31.3"
+      typha           = "public.ecr.aws/saturncloud/calico/typha:v3.31.3"
+    }
+  })
+
+  # The spec the operator gives its coredns CR (saturn-components.yaml).
+  coredns_image = var.coredns_image != "" ? var.coredns_image : "602401143452.dkr.ecr.${var.region}.amazonaws.com/eks/coredns:v1.11.4-eksbuild.2"
+  coredns_values = merge(local.system_node_scheduling, {
+    cloudProvider = "aws"
+    aws           = { region = var.region }
+    clusterName   = local.cluster_name
+    clusterDNSIP  = local.dns_service_ip
+    images        = { coredns = local.coredns_image }
+  })
 }
 
 resource "terraform_data" "calico" {
@@ -148,11 +167,27 @@ resource "terraform_data" "calico" {
   triggers_replace = [terraform_data.remove_aws_cni.id]
 
   provisioner "local-exec" {
-    command = "${path.module}/scripts/install-calico.sh ${local.cluster_name} ${var.region} ${var.calico_chart_path != "" ? var.calico_chart_path : "${path.module}/.charts/calico"}"
+    command = "${path.module}/scripts/install-chart.sh ${local.cluster_name} ${var.region} calico ${local.charts_path}/calico"
     environment = {
-      CALICO_VALUES = yamlencode(local.calico_values)
+      CHART_VALUES = yamlencode(local.calico_values)
     }
   }
+}
+
+# config.py CoreDNS._install: label EKS's CoreDNS objects for the coredns
+# release, then install the chart over them.
+resource "terraform_data" "coredns" {
+  count            = var.manage_helm ? 1 : 0
+  triggers_replace = [terraform_data.remove_aws_cni.id]
+
+  provisioner "local-exec" {
+    command = "${path.module}/scripts/adopt-coredns.sh ${local.cluster_name} ${var.region} && ${path.module}/scripts/install-chart.sh ${local.cluster_name} ${var.region} coredns ${local.charts_path}/coredns"
+    environment = {
+      CHART_VALUES = yamlencode(local.coredns_values)
+    }
+  }
+
+  depends_on = [terraform_data.calico]
 }
 
 # install_addons: created with boto3 after the nodes start. Same versions
@@ -184,18 +219,7 @@ resource "aws_eks_addon" "ebs_csi" {
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
 
-  depends_on = [aws_eks_addon.kube_proxy]
-}
-
-# config.py CoreDNS._install: label EKS's CoreDNS objects so the coredns
-# Helm release (which the operator now installs) takes them over.
-resource "terraform_data" "adopt_coredns" {
-  count            = var.start_nodes ? 1 : 0
-  triggers_replace = [terraform_data.remove_aws_cni.id]
-
-  provisioner "local-exec" {
-    command = "${path.module}/scripts/adopt-coredns.sh ${local.cluster_name} ${var.region}"
-  }
-
-  depends_on = [module.cluster]
+  # The controller needs cluster DNS to reach STS. saturn-aws created this
+  # add-on after its coredns chart, and did not wait for it to become ACTIVE.
+  depends_on = [aws_eks_addon.kube_proxy, terraform_data.coredns]
 }
