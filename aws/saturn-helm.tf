@@ -54,9 +54,8 @@ locals {
     instanceConfig     = local.instance_config
 
     images = {
-      # saturn-aws uses the EKS-published CoreDNS for the cluster's Kubernetes
-      # version (aws_installation.py coredns_image); the chart default is coredns/coredns:1.6.6.
-      coredns = "602401143452.dkr.ecr.${var.region}.amazonaws.com/eks/coredns:v1.11.4-eksbuild.2"
+      # Overridden on every EKS install: the chart default is coredns/coredns:1.6.6.
+      coredns = var.coredns_image != "" ? var.coredns_image : "602401143452.dkr.ecr.${var.region}.amazonaws.com/eks/coredns:v1.11.4-eksbuild.2"
     }
 
     saturnComponents = {

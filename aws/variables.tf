@@ -264,6 +264,12 @@ variable "saturn_bootstrap_token" {
   sensitive   = true
 }
 
+variable "coredns_image" {
+  description = "CoreDNS image for the operator to run. Leave empty for the EKS-published image saturn-aws 2026.02.01 pins for Kubernetes 1.30-1.32 (v1.11.4-eksbuild.2). Use the eks/coredns tag that matches kubernetes_version."
+  type        = string
+  default     = ""
+}
+
 variable "saturn_manager_uri" {
   description = "Saturn manager the bootstrap token belongs to. saturn-aws installs use https://manager.aws.saturnenterprise.io."
   type        = string
