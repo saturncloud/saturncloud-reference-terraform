@@ -197,7 +197,10 @@ resource "helm_release" "saturn_operator" {
 
   values = [yamlencode(local.saturn_helm_values)]
 
+  # module.vpc: on destroy the NAT gateway must outlive the operator, because
+  # the operator and the EBS CSI driver reach AWS and the manager through it.
   depends_on = [
+    module.vpc,
     module.cluster,
     aws_eks_addon.ebs_csi,
     terraform_data.calico,
@@ -222,7 +225,10 @@ resource "terraform_data" "pre_destroy_cleanup" {
     command = "${self.input.script} ${self.input.cluster_name} ${self.input.region}"
   }
 
-  depends_on = [helm_release.saturn_operator]
+  # Destroyed before the operator and before anything in the VPC. Without
+  # module.vpc here, Terraform deleted the NAT gateway while this cleanup ran,
+  # the EBS CSI driver lost its route to STS, and the volumes stayed attached.
+  depends_on = [helm_release.saturn_operator, module.vpc]
 }
 
 output "saturn_helm_values_yaml" {

@@ -64,3 +64,14 @@ done
 remaining_lbs=$(kubectl get svc -A --field-selector spec.type=LoadBalancer -o name 2>/dev/null | wc -l)
 remaining_pvs=$(kubectl get pv -o name 2>/dev/null | wc -l)
 echo "cleanup done: $remaining_lbs LoadBalancer services and $remaining_pvs PersistentVolumes left"
+
+# Stop the destroy rather than leak AWS resources Terraform does not track.
+# This resource stays in the state, so the next `terraform destroy` runs the
+# cleanup again.
+if [ "$remaining_lbs" -ne 0 ] || [ "$remaining_pvs" -ne 0 ]; then
+  echo "refusing to continue: these would be left behind in AWS" >&2
+  kubectl get svc -A --field-selector spec.type=LoadBalancer >&2 || true
+  kubectl get pv >&2 || true
+  kubectl get volumeattachments -o custom-columns=PV:.spec.source.persistentVolumeName,ERROR:.status.detachError.message >&2 || true
+  exit 1
+fi

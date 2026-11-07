@@ -68,9 +68,14 @@ variable "calico_ipv4_pool_cidr" {
 ############################
 
 variable "kubernetes_version" {
-  description = "EKS Kubernetes version. 1.32 is the saturn-aws 2026.02.01 default and the newest version its CoreDNS and add-on tables cover."
+  description = "EKS Kubernetes version: 1.34 or 1.35. The 2026.02.01 operator chart runs cluster-autoscaler v1.35.0, which never starts on Kubernetes older than 1.34. saturn-aws 2026.02.01 still defaults to 1.32, where the autoscaler waits forever and no worker node is ever started."
   type        = string
-  default     = "1.32"
+  default     = "1.35"
+
+  validation {
+    condition     = contains(["1.34", "1.35"], var.kubernetes_version)
+    error_message = "kubernetes_version must be 1.34 or 1.35. The saturn-helm-operator 2026.2.1 chart pins cluster-autoscaler v1.35.0, which waits for the resource.k8s.io APIs that only exist from Kubernetes 1.34; on older clusters it never starts, so workspaces stay Pending with no error. The module also has kube-proxy, EBS CSI and CoreDNS versions only for 1.34 and 1.35."
+  }
 }
 
 variable "cluster_accessibility" {
@@ -267,7 +272,7 @@ variable "saturn_bootstrap_token" {
 }
 
 variable "coredns_image" {
-  description = "CoreDNS image for the operator to run. Leave empty for the EKS-published image saturn-aws 2026.02.01 pins for Kubernetes 1.30-1.32 (v1.11.4-eksbuild.2). Use the eks/coredns tag that matches kubernetes_version."
+  description = "CoreDNS image for the operator to run. Leave empty for the EKS-published eks/coredns:v1.13.2-eksbuild.1 from the region's EKS registry, which EKS lists as compatible with 1.34 and 1.35."
   type        = string
   default     = ""
 }
