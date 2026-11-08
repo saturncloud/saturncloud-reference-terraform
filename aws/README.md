@@ -44,8 +44,10 @@ You need:
   cluster stack's aws-auth resource as a dependency cycle.
 - The AWS CLI, kubectl, helm, jq and docker on the machine that runs Terraform.
 - AWS credentials for the target account.
-- A bootstrap token for the customer, from the Saturn manager. It is valid for
-  four hours, and the operator spends it when it starts.
+- A bootstrap token for the customer, from the Saturn manager. The operator
+  spends it when it starts. The first apply already uses it, to have the
+  manager write the certificate's validation record. A token for a different
+  customer fails there with `manager /install/acme returned HTTP 403`.
 - Network access from the machine that runs Terraform to the cluster's public
   API endpoint. The endpoint only accepts the manager's addresses, the NAT
   gateway and the CIDRs in `public_cluster_allow_list`, so add the machine's

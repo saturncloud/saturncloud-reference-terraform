@@ -44,7 +44,6 @@ locals {
     sshDomain        = local.ssh_domain
     adminEmail       = var.saturn_admin_email
     customerName     = var.saturn_customer_name
-    bootstrapToken   = var.saturn_bootstrap_token
     managerURI       = var.saturn_manager_uri
     saturnManagerUri = var.saturn_manager_uri
     isEnterprise     = true
@@ -197,6 +196,13 @@ resource "helm_release" "saturn_operator" {
 
   values = [yamlencode(local.saturn_helm_values)]
 
+  # Kept out of values: the helm provider prints values in plan diffs, so a
+  # token there showed up in plain text in every plan after the first apply.
+  set_sensitive = [{
+    name  = "bootstrapToken"
+    value = var.saturn_bootstrap_token
+  }]
+
   # module.vpc: on destroy the NAT gateway must outlive the operator, because
   # the operator and the EBS CSI driver reach AWS and the manager through it.
   depends_on = [
@@ -232,7 +238,7 @@ resource "terraform_data" "pre_destroy_cleanup" {
 }
 
 output "saturn_helm_values_yaml" {
-  description = "The values passed to the saturn-helm-operator chart. Contains the bootstrap token."
+  description = "The values passed to the saturn-helm-operator chart, apart from bootstrapToken."
   value       = yamlencode(local.saturn_helm_values)
   sensitive   = true
 }

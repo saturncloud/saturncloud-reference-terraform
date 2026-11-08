@@ -152,9 +152,9 @@ locals {
   })
 
   # The spec the operator gives its coredns CR (saturn-components.yaml).
-  # saturn-aws 2026.02.01 has no CoreDNS image for Kubernetes above 1.32;
-  # this is the one production AWS installs run on newer clusters.
-  coredns_image = var.coredns_image != "" ? var.coredns_image : "602401143452.dkr.ecr.${var.region}.amazonaws.com/eks/coredns:v1.13.2-eksbuild.1"
+  # saturn-aws 2026.02.01 has no CoreDNS image for Kubernetes above 1.32, so
+  # this is the newest EKS CoreDNS add-on build for the cluster's version.
+  coredns_image = var.coredns_image != "" ? var.coredns_image : "602401143452.dkr.ecr.${var.region}.amazonaws.com/eks/coredns:${local.addon_versions[var.kubernetes_version].coredns}"
   coredns_values = merge(local.system_node_scheduling, {
     cloudProvider = "aws"
     aws           = { region = var.region }
@@ -192,13 +192,16 @@ resource "terraform_data" "coredns" {
   depends_on = [terraform_data.calico]
 }
 
-# install_addons: created with boto3 after the nodes start. Same versions
-# and settings as aws_installation.py (kube_proxy_version,
-# aws_ebs_csi_driver_version).
+# install_addons: created with boto3 after the nodes start, with the same
+# settings as aws_installation.py. saturn-aws has no versions for 1.34 or
+# 1.35, so these are the newest EKS builds as of 2026-11-08. Older builds
+# (kube-proxy v1.35.0-eksbuild.2, EBS CSI v1.56.0-eksbuild.1, CoreDNS
+# v1.13.2-eksbuild.1) still trust the emSign ECC Root CA - G3 removed for
+# CVE-2026-111943; these list it as distrusted.
 locals {
   addon_versions = {
-    "1.34" = { kube_proxy = "v1.34.3-eksbuild.5", ebs_csi = "v1.56.0-eksbuild.1" }
-    "1.35" = { kube_proxy = "v1.35.0-eksbuild.2", ebs_csi = "v1.56.0-eksbuild.1" }
+    "1.34" = { kube_proxy = "v1.34.6-eksbuild.64", ebs_csi = "v1.67.2-eksbuild.1", coredns = "v1.13.2-eksbuild.75" }
+    "1.35" = { kube_proxy = "v1.35.3-eksbuild.64", ebs_csi = "v1.67.2-eksbuild.1", coredns = "v1.14.7-eksbuild.35" }
   }
 }
 

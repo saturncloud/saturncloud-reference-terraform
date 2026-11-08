@@ -272,7 +272,7 @@ variable "saturn_bootstrap_token" {
 }
 
 variable "coredns_image" {
-  description = "CoreDNS image for the operator to run. Leave empty for the EKS-published eks/coredns:v1.13.2-eksbuild.1 from the region's EKS registry, which EKS lists as compatible with 1.34 and 1.35."
+  description = "CoreDNS image for the operator to run. Leave empty for the newest EKS CoreDNS add-on build for kubernetes_version (v1.13.2-eksbuild.75 on 1.34, v1.14.7-eksbuild.35 on 1.35), from the region's EKS registry."
   type        = string
   default     = ""
 }
