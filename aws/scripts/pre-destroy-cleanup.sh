@@ -4,8 +4,10 @@
 # track, then waits for AWS to delete them:
 #   - Services of type LoadBalancer (Traefik, ssh-proxy) -> ELBs and their security groups
 #   - PersistentVolumeClaims (Postgres, Elasticsearch, Prometheus, workspaces) -> EBS volumes
-# It also releases the operator's finalizers on the components it leaves in
-# place (Calico, CoreDNS), so uninstalling the operator cannot hang.
+# Workspaces, jobs and deployments that Atlas started are deleted first,
+# because their pods hold their PVCs.
+# It also stops the operator and removes its resources for the components it
+# leaves in place (Calico, CoreDNS), so uninstalling the operator cannot hang.
 set -euo pipefail
 
 CLUSTER=$1
@@ -45,6 +47,21 @@ for _ in $(seq 1 60); do
 done
 
 kubectl delete svc -A --field-selector spec.type=LoadBalancer --wait=true --timeout=10m 2>/dev/null || true
+
+# Atlas is gone now, so nothing will stop the workspaces, jobs and
+# deployments it started. Their pods keep their PVCs in use, which blocks the
+# PVC deletion below. Remove every workload outside the namespaces that keep
+# the cluster and the operator running.
+KEEP_NAMESPACES="kube-system kube-public kube-node-lease saturn-system"
+for ns in $(kubectl get ns -o jsonpath='{.items[*].metadata.name}'); do
+  case " $KEEP_NAMESPACES " in *" $ns "*) continue ;; esac
+  kubectl delete deploy,statefulset,daemonset,replicaset,job,cronjob --all -n "$ns" --wait=false 2>/dev/null || true
+done
+for ns in $(kubectl get ns -o jsonpath='{.items[*].metadata.name}'); do
+  case " $KEEP_NAMESPACES " in *" $ns "*) continue ;; esac
+  kubectl delete pods --all -n "$ns" --wait=true --timeout=5m 2>/dev/null || true
+done
+
 kubectl delete pvc -A --all --wait=true --timeout=10m 2>/dev/null || true
 
 echo "waiting for EBS-backed PersistentVolumes to be released"
@@ -53,11 +70,18 @@ for _ in $(seq 1 60); do
   sleep 10
 done
 
+# Stop the operator first: while it runs, it puts its finalizer back on the
+# Calico and CoreDNS resources, and the chart's uninstall then waits on them
+# until it times out. With the operator stopped, deleting those resources
+# leaves the calico and coredns Helm releases in place until the cluster goes.
+kubectl scale deploy --all -n saturn-system --replicas=0 2>/dev/null || true
+kubectl wait --for=delete pod --all -n saturn-system --timeout=2m 2>/dev/null || true
 for kind in $KEEP_KINDS; do
   kubectl get "$kind.charts.saturncloud.io" -A -o json 2>/dev/null |
     jq -r '.items[] | "\(.metadata.namespace) \(.metadata.name)"' |
     while read -r ns name; do
       kubectl patch "$kind.charts.saturncloud.io" "$name" -n "$ns" --type=merge -p '{"metadata":{"finalizers":[]}}' || true
+      kubectl delete "$kind.charts.saturncloud.io" "$name" -n "$ns" --wait=true --timeout=1m || true
     done
 done
 
