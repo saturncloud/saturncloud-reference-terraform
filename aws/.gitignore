@@ -1,0 +1,4 @@
+.charts/
+# Written by the saturn-aws cluster stack into the working directory, as saturn-aws does.
+kubeconfig_*
+config-map-aws-auth_*.yaml
