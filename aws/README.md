@@ -59,6 +59,13 @@ You need:
   API endpoint. The endpoint only accepts the manager's addresses, the NAT
   gateway and the CIDRs in `public_cluster_allow_list`, so add the machine's
   address there.
+- Room in the account's IAM instance profile quota. AWS allows 1,000 instance
+  profiles per account, across all regions. The module creates one profile
+  per node group, as saturn-aws does: 149 in us-west-2 with the default
+  sizes. Check how many the account already uses with
+  `aws iam get-account-summary --query 'SummaryMap.[InstanceProfiles,InstanceProfilesQuota]'`.
+  If there is not enough room, pass a shorter `instance_sizes` list or ask AWS
+  to raise the quota.
 
 ## Install
 
