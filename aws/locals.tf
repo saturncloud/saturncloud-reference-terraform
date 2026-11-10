@@ -6,7 +6,8 @@ locals {
 
   saturn_domain = var.saturn_domain != "" ? var.saturn_domain : "${var.saturn_customer_name}.saturnenterprise.io"
 
-  azs         = length(var.availability_zones) > 0 ? var.availability_zones : slice(sort(data.aws_availability_zones.available.names), 0, 2)
+  # instance-sizes.tf picks the zones the way saturn-aws does.
+  azs         = length(var.availability_zones) > 0 ? var.availability_zones : local.saturn_aws_azs
   worker_zone = local.azs[0]
 
   # aws_config.py public_endpoint_cidr_list: manager addresses, the NAT
