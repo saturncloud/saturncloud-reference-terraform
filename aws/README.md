@@ -81,10 +81,10 @@ All commands run in this directory unless noted.
    ```
 
 2. Copy the Calico and CoreDNS charts out of the operator image that matches
-   `helm_chart_version` (chart `2026.2.1-147` is image tag `2026.02.01-147`):
+   `helm_chart_version` (chart `2026.2.1-149` is image tag `2026.02.01-149`):
 
    ```bash
-   scripts/fetch-charts.sh 2026.02.01-147
+   scripts/fetch-charts.sh 2026.02.01-149
    ```
 
 3. Initialise the backend, using the key layout saturn-aws used:
@@ -103,7 +103,7 @@ All commands run in this directory unless noted.
    org_name                  = "<org_name>"
    tags                      = { owner = "<you>" }
    public_cluster_allow_list = ["<your address>/32"]
-   helm_chart_version        = "2026.2.1-147"
+   helm_chart_version        = "2026.2.1-149"
    saturn_customer_name      = "<customer>"
    saturn_admin_email        = "<admin email>"
    saturn_manager_uri        = "https://manager.aws.saturnenterprise.io"
