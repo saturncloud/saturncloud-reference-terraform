@@ -24,7 +24,7 @@ resource "terraform_data" "validate" {
       error_message = "vpc_cidr, service_ipv4_cidr and calico_ipv4_pool_cidr must not overlap: ${jsonencode(local.cidrs_overlap)}"
     }
     precondition {
-      condition     = contains([for s in var.instance_sizes : s.name], var.default_cpu_size)
+      condition     = contains([for s in local.requested_sizes : s.name], var.default_cpu_size)
       error_message = "default_cpu_size must be the name of one of instance_sizes."
     }
     precondition {

@@ -24,10 +24,17 @@ each step is needed and in what order.
 
 - An ACM wildcard certificate for `*.<domain>`, validated through the Saturn
   manager, which writes the DNS record.
-- A VPC with two public and two private subnets and one NAT gateway.
+- A VPC with two public and two private subnets and one NAT gateway, in two
+  availability zones chosen as saturn-aws chooses them (see
+  `instance-sizes.tf`).
 - An EKS cluster named `saturn-cluster-<org_name>`, with self-managed node
   groups: `system` (one r5.large), and an on-demand and a spot group for each
-  entry in `instance_sizes`.
+  workspace size. By default these are saturn-aws's 77 AWS sizes, from
+  `saturn-aws-instance-sizes.tf`. As in saturn-aws, a size whose instance type
+  the workers' availability zone does not offer is left out. In us-west-2
+  that leaves 74 sizes, because the region no longer offers p3 instances.
+  Every group starts at zero nodes; the cluster autoscaler adds nodes when a
+  workspace needs one.
 - The IAM roles, security groups and KMS key saturn-aws creates.
 - The Saturn operator, in namespace `saturn-system`. It then installs Atlas,
   Traefik, the SSH proxy, logging, monitoring and the cluster autoscaler. AWS

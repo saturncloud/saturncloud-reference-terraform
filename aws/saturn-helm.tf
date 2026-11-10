@@ -7,11 +7,11 @@ locals {
   ssh_domain      = "ssh.${local.saturn_domain}"
 
   # Atlas's instance sizes: the same objects saturn-aws writes into
-  # instanceConfig, one per instance_sizes entry.
+  # instanceConfig, one per size the worker zone offers.
   instance_config = {
-    default_cpu = var.default_cpu_size
-    default_gpu = try([for s in var.instance_sizes : s.name if s.gpu > 0][0], "")
-    sizes = [for s in var.instance_sizes : {
+    default_cpu = local.default_cpu_size
+    default_gpu = local.default_gpu_size
+    sizes = [for s in local.instance_sizes : {
       name                 = s.name
       display_name         = s.display_name
       min_size             = s.min_size
@@ -48,7 +48,7 @@ locals {
     saturnManagerUri = var.saturn_manager_uri
     isEnterprise     = true
 
-    imageBuildNodeRole = var.default_cpu_size
+    imageBuildNodeRole = local.default_cpu_size
     instanceConfig     = local.instance_config
 
     images = {
