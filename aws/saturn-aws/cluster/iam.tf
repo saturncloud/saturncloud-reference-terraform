@@ -109,10 +109,8 @@ resource "aws_iam_role" "ebs_csi" {
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
         "StringEquals": {
-          "${local.oidc_provider_id}:aud": "sts.amazonaws.com"
-        },
-        "StringEquals": {
-          "${local.oidc_provider_id}:sub" : "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+          "${local.oidc_provider_id}:aud": "sts.amazonaws.com",
+          "${local.oidc_provider_id}:sub": "system:serviceaccount:kube-system:ebs-csi-controller-sa"
         }
       }
     }
