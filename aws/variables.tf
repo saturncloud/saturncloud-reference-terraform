@@ -156,7 +156,7 @@ variable "system_node" {
 }
 
 variable "instance_sizes" {
-  description = "Workspace node sizes (saturn-aws asg_config, and Atlas's instanceConfig). Each gets an on-demand and a spot_ node group. Defaults are saturn-aws's medium and large from instance_types.py; add more in the same shape."
+  description = "Workspace node sizes (saturn-aws asg_config, and Atlas's instanceConfig). Each gets an on-demand and a spot_ node group. Leave null for saturn-aws's 77 AWS sizes (saturn-aws-instance-sizes.tf). As in saturn-aws, a size whose instance type the worker zone does not offer is left out, and so is each spot type it does not offer."
   type = list(object({
     name                = string
     display_name        = string
@@ -173,30 +173,19 @@ variable "instance_sizes" {
     reserved_memory     = optional(string, "512Mi")
     enable_monitoring   = optional(bool, false)
   }))
-  default = [
-    {
-      name                = "medium"
-      display_name        = "Medium"
-      instance_type       = "t3.medium"
-      spot_instance_types = ["t3.medium", "t3.large", "t3a.large", "t3a.medium"]
-      cores               = 2
-      memory              = "4Gi"
-    },
-    {
-      name                = "large"
-      display_name        = "Large"
-      instance_type       = "r5.large"
-      spot_instance_types = ["r5.large", "r5d.large", "r5a.large", "r5ad.large", "r5n.large", "r5dn.large", "r4.large", "r3.large"]
-      cores               = 2
-      memory              = "16Gi"
-    },
-  ]
+  default = null
 }
 
 variable "default_cpu_size" {
-  description = "Instance size Atlas offers by default. Must be one of instance_sizes."
+  description = "CPU size Atlas offers by default. Must be one of instance_sizes. If the worker zone does not offer it, the first CPU size that remains is used, as in saturn-aws."
   type        = string
   default     = "large"
+}
+
+variable "default_gpu_size" {
+  description = "GPU size Atlas offers by default. If it is not one of the sizes that remain, the first GPU size that remains is used, as in saturn-aws."
+  type        = string
+  default     = "g4dnxlarge"
 }
 
 variable "workers_additional_policies" {

@@ -24,10 +24,17 @@ each step is needed and in what order.
 
 - An ACM wildcard certificate for `*.<domain>`, validated through the Saturn
   manager, which writes the DNS record.
-- A VPC with two public and two private subnets and one NAT gateway.
+- A VPC with two public and two private subnets and one NAT gateway, in two
+  availability zones chosen as saturn-aws chooses them (see
+  `instance-sizes.tf`).
 - An EKS cluster named `saturn-cluster-<org_name>`, with self-managed node
   groups: `system` (one r5.large), and an on-demand and a spot group for each
-  entry in `instance_sizes`.
+  workspace size. By default these are saturn-aws's 77 AWS sizes, from
+  `saturn-aws-instance-sizes.tf`. As in saturn-aws, a size whose instance type
+  the workers' availability zone does not offer is left out. In us-west-2
+  that leaves 74 sizes, because the region no longer offers p3 instances.
+  Every group starts at zero nodes; the cluster autoscaler adds nodes when a
+  workspace needs one.
 - The IAM roles, security groups and KMS key saturn-aws creates.
 - The Saturn operator, in namespace `saturn-system`. It then installs Atlas,
   Traefik, the SSH proxy, logging, monitoring and the cluster autoscaler. AWS
@@ -52,6 +59,13 @@ You need:
   API endpoint. The endpoint only accepts the manager's addresses, the NAT
   gateway and the CIDRs in `public_cluster_allow_list`, so add the machine's
   address there.
+- Room in the account's IAM instance profile quota. AWS allows 1,000 instance
+  profiles per account, across all regions. The module creates one profile
+  per node group, as saturn-aws does: 149 in us-west-2 with the default
+  sizes. Check how many the account already uses with
+  `aws iam get-account-summary --query 'SummaryMap.[InstanceProfiles,InstanceProfilesQuota]'`.
+  If there is not enough room, pass a shorter `instance_sizes` list or ask AWS
+  to raise the quota.
 
 ## Install
 
@@ -67,10 +81,10 @@ All commands run in this directory unless noted.
    ```
 
 2. Copy the Calico and CoreDNS charts out of the operator image that matches
-   `helm_chart_version` (chart `2026.2.1-147` is image tag `2026.02.01-147`):
+   `helm_chart_version` (chart `2026.2.1-149` is image tag `2026.02.01-149`):
 
    ```bash
-   scripts/fetch-charts.sh 2026.02.01-147
+   scripts/fetch-charts.sh 2026.02.01-149
    ```
 
 3. Initialise the backend, using the key layout saturn-aws used:
@@ -89,7 +103,7 @@ All commands run in this directory unless noted.
    org_name                  = "<org_name>"
    tags                      = { owner = "<you>" }
    public_cluster_allow_list = ["<your address>/32"]
-   helm_chart_version        = "2026.2.1-147"
+   helm_chart_version        = "2026.2.1-149"
    saturn_customer_name      = "<customer>"
    saturn_admin_email        = "<admin email>"
    saturn_manager_uri        = "https://manager.aws.saturnenterprise.io"

@@ -71,7 +71,7 @@ module "cluster" {
     max_pods          = var.system_node.max_pods
     enable_monitoring = var.system_node.enable_monitoring
   }
-  asg_config = [for s in var.instance_sizes : {
+  asg_config = [for s in local.instance_sizes : {
     name                = s.name
     instance_type       = s.instance_type
     cores               = s.cores
